@@ -6,6 +6,9 @@
   <!-- EMDK Permission -->
   <uses-permission android:name="com.symbol.emdk.permission.EMDK" />
 
+  <!-- Pie Permission -->
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
   <application
     android:name=".App"
     android:allowBackup="true"
