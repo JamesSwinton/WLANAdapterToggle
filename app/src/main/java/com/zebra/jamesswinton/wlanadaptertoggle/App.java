@@ -16,7 +16,10 @@ public class App extends Application implements EMDKListener {
   private static final String TAG = "ApplicationClass";
 
   // Constants
-
+  public static final String EXIT_APP_INTENT_FILTER =
+          "com.zebra.jamesswinton.wlanadaptertoggle.exit_activities";
+  public static final String EXIT_SERVICE_INTENT_FILTER =
+          "com.zebra.jamesswinton.wlanadaptertoggle.exit_service";
 
   // Static Variables
 

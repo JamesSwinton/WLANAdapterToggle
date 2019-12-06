@@ -18,6 +18,9 @@ import android.util.Log;
 import com.symbol.emdk.EMDKResults;
 import com.symbol.emdk.ProfileManager.PROFILE_FLAG;
 
+import static com.zebra.jamesswinton.wlanadaptertoggle.App.EXIT_APP_INTENT_FILTER;
+import static com.zebra.jamesswinton.wlanadaptertoggle.App.EXIT_SERVICE_INTENT_FILTER;
+
 public class BackgroundService extends Service {
 
   // Debugging
@@ -25,6 +28,7 @@ public class BackgroundService extends Service {
 
   // Constants
   private static final int BACKGROUND_SERVICE_NOTIFICATION = 1;
+  private static final int NOTIFICATION_ACTION_STOP_SERVICE = 2;
 
   // Static Variables
 
@@ -41,9 +45,10 @@ public class BackgroundService extends Service {
     screenStateFilter.addAction(Intent.ACTION_SCREEN_OFF);
     registerReceiver(screenStateReceiver, screenStateFilter);
 
-    // IDK ???
-    Intent notificationIntent = new Intent(this, MainActivity.class);
-    PendingIntent.getActivity(this, 0, notificationIntent, 0);
+    // Register Stop Service Receiver
+    IntentFilter stopServiceFilter = new IntentFilter();
+    stopServiceFilter.addAction(EXIT_SERVICE_INTENT_FILTER);
+    registerReceiver(stopServiceReceiver, stopServiceFilter);
 
     // Start Service
     startForeground(BACKGROUND_SERVICE_NOTIFICATION, createServiceNotification());
@@ -68,12 +73,17 @@ public class BackgroundService extends Service {
     NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this,
         channelId);
 
+    // Add action button in the notification
+    PendingIntent stopServicePendingIntent = PendingIntent.getBroadcast(getApplicationContext(),
+            NOTIFICATION_ACTION_STOP_SERVICE, new Intent(EXIT_SERVICE_INTENT_FILTER), 0);
+
     // Return Build Notification object
     return notificationBuilder
         .setContentTitle("WLAN Toggle Active")
         .setSmallIcon(R.drawable.ic_notification_icon)
         .setCategory(Notification.CATEGORY_SERVICE)
         .setPriority(NotificationManager.IMPORTANCE_MIN)
+        .addAction(R.drawable.ic_quit, "STOP", stopServicePendingIntent)
         .setOngoing(true)
         .build();
   }
@@ -96,6 +106,16 @@ public class BackgroundService extends Service {
         }
       } else {
         Log.e(TAG, "Intent Action was Null");
+      }
+    }
+  };
+
+  // Broadcast Receiver for Exit Service
+  BroadcastReceiver stopServiceReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      if (intent.getAction()!= null && intent.getAction().equals(EXIT_SERVICE_INTENT_FILTER)) {
+        stopSelf();
       }
     }
   };
@@ -145,6 +165,10 @@ public class BackgroundService extends Service {
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
+    // Close Main Activity via Broadcast
+    sendBroadcast(new Intent(EXIT_APP_INTENT_FILTER));
+
+    // Start Service
     return START_STICKY;
   }
 
@@ -154,5 +178,6 @@ public class BackgroundService extends Service {
 
     // Unregister Receiver
     unregisterReceiver(screenStateReceiver);
+    unregisterReceiver(stopServiceReceiver);
   }
 }
